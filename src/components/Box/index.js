@@ -16,12 +16,27 @@ const Box = styled.div`
     text-decoration: none;
 
     &:hover { color: #055c9c; }
+
+    &.-verdana {
+      margin-top: 8px;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+    }
+  }
+
+  .box-text {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #999;
+
+    &.-about { width: 60px; }
   }
 
   .box-title {
     font-size: 32px;
     font-weight: 400;
     margin-bottom: 20px;
+
+    &.-unmargin { margin: 0; }
   }
 
   .box-subtitle {
@@ -47,6 +62,7 @@ const Box = styled.div`
   .box-input {
     width: 100%;
     padding: 14px 16px;
+    margin-top: 16px;
     margin-bottom: 14px;
     color: #333;
     background-color: #f4f4f4;
@@ -61,14 +77,16 @@ const Box = styled.div`
 
   .box-btn {
     padding: 8px 12px;
+    margin-right: 16px;
     color: #fff;
     background-color: #6f92bb;
     border: 0;
     border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 200ms ease-in-out;
 
-    &:hover { background-color: #8aa1bd; }
+    &.-light {
+      color: #2e7bb4;
+      background-color: #d9e6f6;
+    }
   }
 `;
 

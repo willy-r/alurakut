@@ -16,7 +16,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Rubik, sans-serif;;
     background-color: #D9E6F6;
   }
 
@@ -27,6 +27,9 @@ const GlobalStyle = createGlobalStyle`
   }
 
   ul { list-style-type: none; }
+
+  button,
+  input { font-family: inherit; }
 
   #__next {
     display: flex;
@@ -47,6 +50,10 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <title>Alurakut</title>
+      
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet" />
       <GlobalStyle />
       <ThemeProvider theme={theme}>
         <Component {...pageProps} />
