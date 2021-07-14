@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
+import { SiteClient } from 'datocms-client';
 
-import {
-  AlurakutMenu,
-  AlurakutProfileSidebarMenuDefault,
-  OrkutNostalgicIconSet,
-} from '../src/lib/AlurakutCommons';
-
+import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet} from '../src/lib/AlurakutCommons';
 import MainGrid from '../src/components/MainGrid';
 import Box from '../src/components/Box';
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
+
 
 function ProfileSidebar(props) {
   return (
@@ -27,36 +24,11 @@ function ProfileSidebar(props) {
   );
 }
 
-// Desafio: Pegar os dados da API do GitHub e listar seus seguidores.
-function MyGithubFollowers() {
-  const [myFollowers, setMyFollowers] = useState([]);
-
-  useEffect(() => {
-    fetch('https://api.github.com/users/willy-r/followers')
-      .then(response => response.json())
-      .then(followersList => {
-        const followersNames = followersList.map((followerObj) => followerObj.login);
-        setMyFollowers(followersNames);
-      });
-  }, []);
-
-  return (
-    <ProfileRelationsBoxContent
-      boxTitle={
-        <>
-          Meus seguidores no GitHub <a className="box-link" href="https://github.com/willy-r?tab=followers" target="_blank" rel="noopener noreferrer external">({myFollowers.length})</a>
-        </>
-      }
-      itemsList={myFollowers}
-    />
-  );
-}
-
 function ProfileRelationsBoxContent(props) {
   return (
-    <>
+    <ProfileRelationsBoxWrapper>
       <h2 className="box-smalltitle">
-        {props.boxTitle}
+        {props.boxTitle} <a className="box-link" href="">({props.itemsList.length})</a>
       </h2>
       <ul>
         {props.itemsList.slice(0, 6).map((item) => {
@@ -73,13 +45,14 @@ function ProfileRelationsBoxContent(props) {
               </li>
             );
           } else {
+            // Gera um número aleatório para gerar imagens diferentes.
             const randomNumber = Math.floor(Math.random() * 10);
 
             return (
               <li key={item.id}>
                 <a href={item.link} target="_blank" rel="noopener noreferrer external">
                   <img
-                    src={isValidURLImg(item.imgURL) ? item.imgURL : `https://picsum.photos/300?random=${randomNumber}`}
+                    src={isValidImgURL(item.imageUrl) ? item.imageUrl : `https://picsum.photos/300?random=${randomNumber}`}
                     alt={`Capa da comunidade ${item.title}`}
                   />
                   <span>{item.title}</span>
@@ -89,11 +62,15 @@ function ProfileRelationsBoxContent(props) {
           }
         })}
       </ul>
-    </>
+      <hr />
+      <a className="box-link -verdana" href="">
+        Ver todos
+      </a>
+    </ProfileRelationsBoxWrapper>
   );
 }
 
-function isValidURLImg(imgURL) {
+function isValidImgURL(imgURL) {
   const imgFormatsAllowed = ['.png', '.bmp', '.jpg', '.jpeg', '.svg', '.gif'];
   
   return imgFormatsAllowed.some(format => imgURL.includes(format));
@@ -101,6 +78,7 @@ function isValidURLImg(imgURL) {
 
 export default function Home() {
   const userName = 'willy-r';
+  
   const devsCommunity = [
     'juunegreiros', 
     'omariosouto', 
@@ -115,17 +93,42 @@ export default function Home() {
     Ele retorna dois valores, nesse casso um array com as comunidades e uma forma
     de alterar esse array de comunidades.
   */
-  const [communities, setCommunities] = useState([
-    { id: '1', title: 'Alurakut', imgURL: '', link: 'https://github.com/alura-challenges/alurakut' },
-    { id: '2', title: 'Devs Soutinhos', imgURL: '', link: 'https://www.youtube.com/DevSoutinho' },
-    { id: '3', title: 'Marcos Bruno Dev', imgURL: '', link: 'https://www.twitch.tv/marcobrunodev' },
-    { 
-      id: '4', 
-      title: 'Resilientes', 
-      imgURL: 'https://scontent.fphb2-1.fna.fbcdn.net/v/t1.6435-9/70474925_110913430306140_4230531327587254272_n.png?_nc_cat=108&ccb=1-3&_nc_sid=973b4a&_nc_ohc=DCt4n3x-7VIAX_wYLif&_nc_ht=scontent.fphb2-1.fna&oh=592e04dc290df78e11e4b0985d6c7d7c&oe=60F3ED16', 
-      link: 'https://www.resilia.work/' 
-    },
-  ]);
+  const client = new SiteClient(process.env.NEXT_PUBLIC_API_TOKEN);
+  
+  const [communities, setCommunities] = useState([]);
+  useEffect(() => {
+    client.items.all({
+      'filter[type]': '967554',
+      version: 'published'
+    }, { 
+      allPages: true, 
+    })
+      .then(communitiesList => setCommunities(communitiesList))
+      .catch(err => console.error(err))
+  }, []);
+
+  const createCommunity = async (title, link, imageURL) => {
+    const newCommunity = await client.items.create({
+      itemType: '967554',
+      title: title,
+      link: link,
+      imageUrl: imageURL,
+    });
+
+    // Ele sobrescreve a lista de comunidades, não faz uma nova requisição.
+    setCommunities([newCommunity, ...communities]);
+  }
+
+  // Desafio: listar seus seguidores através da API do Github.
+  const [followers, setFollowers] = useState([]);
+  useEffect(() => {
+    fetch('https://api.github.com/users/willy-r/followers')
+      .then(response => response.json())
+      .then(followersList => {
+        const followersNames = followersList.map((followerObj) => followerObj.login);
+        setFollowers(followersNames);
+      });
+  }, []);
 
   /*
     Utiliza os componentes criados.
@@ -161,14 +164,12 @@ export default function Home() {
               
               const form = event.target;
               const data = new FormData(form);
-              const newCommunity = {
-                id: new Date().toISOString(),
-                title: data.get('community-title'),
-                imgURL: data.get('community-img'),
-                link: data.get('community-link'),
-              };
 
-              setCommunities([...communities, newCommunity]);
+              createCommunity(
+                data.get('community-title'),
+                data.get('community-link'),
+                data.get('community-img')
+              );
 
               form.reset();
             }}>
@@ -210,43 +211,20 @@ export default function Home() {
         </div>
         
         <div className="profile-relations-area" style={{ gridArea: 'profile-relations-area' }}>
-          <ProfileRelationsBoxWrapper>
-            <MyGithubFollowers />
-            <hr />
-            <a
-              className="box-link -verdana"
-              href="https://github.com/willy-r?tab=followers"
-              target="_blank"
-              rel="noopener noreferrer external">
-              Ver todos
-            </a>
-          </ProfileRelationsBoxWrapper>
-          
-          <ProfileRelationsBoxWrapper>
-            <ProfileRelationsBoxContent
-              boxTitle={
-                <>
-                  Pessoas da comunidade <a className="box-link" href="">({devsCommunity.length})</a>
-                </> 
-              }
-              itemsList={devsCommunity}
-            />
-            <hr />
-            <a className="box-link -verdana" href="">Ver todos</a>
-          </ProfileRelationsBoxWrapper>
+          <ProfileRelationsBoxContent
+            boxTitle={'Meus seguidores no GitHub'}
+            itemsList={followers}
+          />
 
-          <ProfileRelationsBoxWrapper>
-            <ProfileRelationsBoxContent
-              boxTitle={
-                <>
-                  Minhas comunidades <a className="box-link" href="">({communities.length})</a>
-                </>
-              }
-              itemsList={communities}
-            />
-            <hr />
-            <a className="box-link -verdana" href="">Ver todos</a>
-          </ProfileRelationsBoxWrapper>
+          <ProfileRelationsBoxContent
+            boxTitle={'Minhas comunidades'}
+            itemsList={communities}
+          />
+    
+          <ProfileRelationsBoxContent
+            boxTitle={'Pessoas da comunidade'}
+            itemsList={devsCommunity}
+          />
         </div>
       </MainGrid>
     </>
