@@ -7,7 +7,12 @@ const Box = styled.div`
   padding: 16px;
   margin-bottom: 10px;
 
-  .box-img { border-radius: 8px; }
+  hr {
+    margin-top: 12px;
+    margin-bottom: 8px;
+    border-color: transparent;
+    border-bottom-color: #ecf2fa;
+  }
   
   .box-link {
     font-size: 14px;
@@ -52,17 +57,9 @@ const Box = styled.div`
     color: #333;
   }
 
-  .box-hr {
-    margin-top: 12px;
-    margin-bottom: 8px;
-    border-color: transparent;
-    border-bottom-color: #ecf2fa;
-  }
-
   .box-input {
     width: 100%;
     padding: 14px 16px;
-    margin-top: 16px;
     margin-bottom: 14px;
     color: #333;
     background-color: #f4f4f4;
@@ -70,7 +67,7 @@ const Box = styled.div`
     border-radius: 32px;
 
     &::placeholder {
-      color: #333;
+      color: #999;
       opacity: 1;
     }
   }

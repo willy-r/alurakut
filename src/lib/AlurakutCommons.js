@@ -213,10 +213,10 @@ export function AlurakutProfileSidebarMenuDefault() {
       </nav>
       <hr />
       <nav>
-        <a href="/">
+        <a href="https://github.com/trending?since=monthly" target="_blank" rel="noopener noreferrer external">
           <img src={`${BASE_URL}/icons/plus.svg`} />
-            GitHub Trends
-          </a>
+          GitHub Trends
+        </a>
         <a href="/logout">
           <img src={`${BASE_URL}//icons/logout.svg`} />
             Sair
@@ -503,6 +503,8 @@ export const AlurakutStyles = css`
     &:focus {
       box-shadow: 0px 0px 5px #33333357;
     }
+    &:required:hover,
+    &:required:focus { box-shadow: 0px 0px 5px #ed1c1c; }
   }
 
   ${AlurakutLoginScreen}

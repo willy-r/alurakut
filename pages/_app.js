@@ -29,7 +29,11 @@ const GlobalStyle = createGlobalStyle`
   ul { list-style-type: none; }
 
   button,
-  input { font-family: inherit; }
+  input {
+    font-family: inherit;
+    border: none;
+    border-radius: 0;
+  }
 
   #__next {
     display: flex;
@@ -54,6 +58,7 @@ export default function App({ Component, pageProps }) {
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
       <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet" />
+      
       <GlobalStyle />
       <ThemeProvider theme={theme}>
         <Component {...pageProps} />

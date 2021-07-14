@@ -1,29 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-// Com o bigodinho a lib está exportando os componentes individualmente.
-import { AlurakutMenu, OrkutNostalgicIconSet } from '../src/lib/AlurakutCommons';
+import {
+  AlurakutMenu,
+  AlurakutProfileSidebarMenuDefault,
+  OrkutNostalgicIconSet,
+} from '../src/lib/AlurakutCommons';
 
-// Sem o bigodinho a lib está exportando como default.
 import MainGrid from '../src/components/MainGrid';
 import Box from '../src/components/Box';
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
 
 function ProfileSidebar(props) {
   return (
-    <Box>
-      <img className="box-img" src={`https://github.com/${props.ghUserName}.png`} alt="Foto de perfil de William Rodrigues" />
-      
-      <hr className="box-hr" />
-      
-      <a className="box-link" href="#">William Rodrigues</a>
-      <p class="box-text -about">
+    <Box as="aside">
+      <img src={`https://github.com/${props.ghUserName}.png`} alt="Foto de perfil de William Rodrigues" />
+      <hr />
+      <a className="box-link" href={`https://github.com/${props.ghUserName}`}>
+        @{props.ghUserName}
+      </a>
+      <p className="box-text -about">
         masculino, solteiro(a), Brasil
       </p>
+      <hr />
+      <AlurakutProfileSidebarMenuDefault />
     </Box>
   );
 }
 
-// Desafio: Pegar os dados da API do GitHub e listar seus seguidores. Done.
+// Desafio: Pegar os dados da API do GitHub e listar seus seguidores.
 function MyGithubFollowers() {
   const [myFollowers, setMyFollowers] = useState([]);
 
@@ -37,25 +41,62 @@ function MyGithubFollowers() {
   }, []);
 
   return (
+    <ProfileRelationsBoxContent
+      boxTitle={
+        <>
+          Meus seguidores no GitHub <a className="box-link" href="https://github.com/willy-r?tab=followers" target="_blank" rel="noopener noreferrer external">({myFollowers.length})</a>
+        </>
+      }
+      itemsList={myFollowers}
+    />
+  );
+}
+
+function ProfileRelationsBoxContent(props) {
+  return (
     <>
       <h2 className="box-smalltitle">
-        Meus seguidores no GitHub <a className="box-link" href="">({myFollowers.length})</a>
+        {props.boxTitle}
       </h2>
-
       <ul>
-        {myFollowers.slice(0, 6).map((follower) => {
-          return (
-            <li>
-              <a href={`/users/${follower}`} key={follower} title="Clique para ver o perfil">
-                <img src={`https://github.com/${follower}.png`} alt={`Foto de perfil de ${follower}`} />
-                <span>{follower}</span>
-              </a>
-            </li>
-          );
+        {props.itemsList.slice(0, 6).map((item) => {
+          if (typeof item == 'string') {
+            return (
+              <li key={item}>
+                <a href={`https://github.com/${item}`} target="_blank" rel="noopener noreferrer external">
+                  <img
+                    src={`https://github.com/${item}.png`}
+                    alt={`Foto de perfil de ${item}`}
+                  />
+                  <span>{item}</span>
+                </a>
+              </li>
+            );
+          } else {
+            const randomNumber = Math.floor(Math.random() * 10);
+
+            return (
+              <li key={item.id}>
+                <a href={item.link} target="_blank" rel="noopener noreferrer external">
+                  <img
+                    src={isValidURLImg(item.imgURL) ? item.imgURL : `https://picsum.photos/300?random=${randomNumber}`}
+                    alt={`Capa da comunidade ${item.title}`}
+                  />
+                  <span>{item.title}</span>
+                </a>
+              </li>
+            );
+          }
         })}
       </ul>
     </>
   );
+}
+
+function isValidURLImg(imgURL) {
+  const imgFormatsAllowed = ['.png', '.bmp', '.jpg', '.jpeg', '.svg', '.gif'];
+  
+  return imgFormatsAllowed.some(format => imgURL.includes(format));
 }
 
 export default function Home() {
@@ -68,6 +109,23 @@ export default function Home() {
     'felipefialho',
     'peas',
   ];
+  
+  /*
+    O valor passado para o useState é o valor inicial.
+    Ele retorna dois valores, nesse casso um array com as comunidades e uma forma
+    de alterar esse array de comunidades.
+  */
+  const [communities, setCommunities] = useState([
+    { id: '1', title: 'Alurakut', imgURL: '', link: 'https://github.com/alura-challenges/alurakut' },
+    { id: '2', title: 'Devs Soutinhos', imgURL: '', link: 'https://www.youtube.com/DevSoutinho' },
+    { id: '3', title: 'Marcos Bruno Dev', imgURL: '', link: 'https://www.twitch.tv/marcobrunodev' },
+    { 
+      id: '4', 
+      title: 'Resilientes', 
+      imgURL: 'https://scontent.fphb2-1.fna.fbcdn.net/v/t1.6435-9/70474925_110913430306140_4230531327587254272_n.png?_nc_cat=108&ccb=1-3&_nc_sid=973b4a&_nc_ohc=DCt4n3x-7VIAX_wYLif&_nc_ht=scontent.fphb2-1.fna&oh=592e04dc290df78e11e4b0985d6c7d7c&oe=60F3ED16', 
+      link: 'https://www.resilia.work/' 
+    },
+  ]);
 
   /*
     Utiliza os componentes criados.
@@ -76,7 +134,7 @@ export default function Home() {
   */
   return (
     <>
-      <AlurakutMenu />
+      <AlurakutMenu githubUser={userName} />
       <MainGrid>
         <div className="profile-area" style={{ gridArea: 'profile-area' }}>
           <ProfileSidebar ghUserName={userName} />
@@ -90,7 +148,6 @@ export default function Home() {
             <p class="box-text">
               <strong>Sorte de hoje</strong>: O melhor profeta do futuro é o passado
             </p>
-            
             <OrkutNostalgicIconSet />
           </Box>
 
@@ -99,49 +156,95 @@ export default function Home() {
               O que você deseja fazer?
             </h2>
 
-            <button className="box-btn" type="button">
-              Criar comunidade
-            </button>
-            <button className="box-btn -light" type="button">
-              Escrever depoimento
-            </button>
-            <button className="box-btn -light" type="button">
-              Deixar um scrap
-            </button>
+            <form action="" onSubmit={(event) => {
+              event.preventDefault();
+              
+              const form = event.target;
+              const data = new FormData(form);
+              const newCommunity = {
+                id: new Date().toISOString(),
+                title: data.get('community-title'),
+                imgURL: data.get('community-img'),
+                link: data.get('community-link'),
+              };
 
-            <input className="box-input" type="text" placeholder="Qual vai ser o nome da sua comunidade?" />
+              setCommunities([...communities, newCommunity]);
+
+              form.reset();
+            }}>
+              <input
+                className="box-input"
+                type="text"
+                name="community-title"
+                placeholder="Qual vai ser o nome da sua comunidade?"
+                aria-label="Qual vai ser o nome da sua comunidade?"
+                required
+              />
+              <input
+                className="box-input"
+                type="text"
+                name="community-link"
+                placeholder="URL da comunidade"
+                aria-label="URL da comunidade"
+                required
+              />
+              <input
+                className="box-input"
+                type="text"
+                name="community-img"
+                placeholder="URL de uma imagem para ser usada como capa"
+                aria-label="URL de uma imagem para ser usada como capa"
+              />
+
+              <button className="box-btn" type="submit">
+                Criar comunidade
+              </button>
+              {/* <button className="box-btn -light" type="button">
+                Escrever depoimento
+              </button>
+              <button className="box-btn -light" type="button">
+                Deixar um scrap
+              </button> */}
+            </form>
           </Box>
         </div>
         
         <div className="profile-relations-area" style={{ gridArea: 'profile-relations-area' }}>
           <ProfileRelationsBoxWrapper>
             <MyGithubFollowers />
-
-            <hr className="box-hr" />
-            
-            <a className="box-link -verdana" href="">Ver todos</a>
+            <hr />
+            <a
+              className="box-link -verdana"
+              href="https://github.com/willy-r?tab=followers"
+              target="_blank"
+              rel="noopener noreferrer external">
+              Ver todos
+            </a>
           </ProfileRelationsBoxWrapper>
           
           <ProfileRelationsBoxWrapper>
-            <h2 className="box-smalltitle">
-              Pessoas da comunidade <a className="box-link" href="">({devsCommunity.length})</a>
-            </h2>
-            
-            <ul>
-              {devsCommunity.map((devName) => {
-                return (
-                  <li>
-                    <a href={`/users/${devName}`} key={devName} title="Clique para ver o perfil">
-                      <img src={`https://github.com/${devName}.png`} alt={`Foto de perfil de ${devName}`} />
-                      <span>{devName}</span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-            
-            <hr className="box-hr" />
-            
+            <ProfileRelationsBoxContent
+              boxTitle={
+                <>
+                  Pessoas da comunidade <a className="box-link" href="">({devsCommunity.length})</a>
+                </> 
+              }
+              itemsList={devsCommunity}
+            />
+            <hr />
+            <a className="box-link -verdana" href="">Ver todos</a>
+          </ProfileRelationsBoxWrapper>
+
+          <ProfileRelationsBoxWrapper>
+            <ProfileRelationsBoxContent
+              boxTitle={
+                <>
+                  Minhas comunidades <a className="box-link" href="">({communities.length})</a>
+                </>
+              }
+              itemsList={communities}
+            />
+            <hr />
             <a className="box-link -verdana" href="">Ver todos</a>
           </ProfileRelationsBoxWrapper>
         </div>
