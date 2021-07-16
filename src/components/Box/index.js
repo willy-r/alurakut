@@ -34,8 +34,6 @@ const Box = styled.div`
     margin-top: 8px;
     font-size: 12px;
     color: #999;
-
-    &.-about { width: 60px; }
   }
 
   .box-title {
@@ -77,6 +75,21 @@ const Box = styled.div`
     font-size: 16px;
     font-weight: 600;
     text-align: center;
+  }
+
+  .box-fieldset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+
+    > .label { font-size: 15px; }
+
+    > .input {
+      padding: 2px;
+      margin-left: 5px;
+      border-radius: 8px;
+    }
   }
 
   .box-input {

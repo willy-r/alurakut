@@ -35,6 +35,8 @@ const GlobalStyle = createGlobalStyle`
     border-radius: 0;
   }
 
+  fieldset { border: none; }
+
   #__next {
     display: flex;
     flex-direction: column;

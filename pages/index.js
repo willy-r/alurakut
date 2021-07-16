@@ -14,7 +14,7 @@ function ProfileSidebar(props) {
       <a className="box-link" href={`https://github.com/${props.ghDefaultUser}`}>
         @{props.ghDefaultUser}
       </a>
-      <p className="box-text -about">
+      <p className="box-text">
         masculino, solteiro(a), Brasil
       </p>
       <hr />
@@ -86,91 +86,19 @@ function ScrapsBoxContent(props) {
           };
           const date = getDate();
 
-          const scrapColors = ['#D81D99', '#2E7BB4', '#EF5261', '#FFA600'];
-          const randomColor = scrapColors[Math.floor(Math.random() * scrapColors.length)];
-
           return (
             <article className="scrap-card" key={scrap.id}>
               <div className="box-header">
                 <h3 className="author">{scrap.author}</h3>
-                <em className="date">criado em: {date}</em>
+                <em className="date">{date}</em>
               </div>
-              <p className="content" style={{ color: randomColor }}>{scrap.content}</p>
+              <p className="content" style={{ color: scrap.color }}>{scrap.content}</p>
             </article>
           );
         })}
       </section>
     </Box>
   );
-}
-
-function createNewCommunity(event, defaultUser, communities, setCommunities) {
-  event.preventDefault();
-
-  const getVerifiedImageURL = (imageURL) => {
-    const imageFormatsAllowed = ['.png', '.bmp', '.jpg', '.jpeg', '.svg'];
-    const isValidImageURL = imageFormatsAllowed.some(format => imageURL.includes(format));
-
-    if (!isValidImageURL) {
-      // Isso é necessário para não gerar imagens iguais.
-      const randomNumber = Math.floor(Math.random() * 10);
-      imageURL = `https://picsum.photos/300?random=${randomNumber}`;
-    }
-    
-    return imageURL;
-  }
-  const updateWithCommunityCreated = (communityObj) => {
-    fetch('/api/communities', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(communityObj),
-    })
-      .then(async (response) => {
-        const communityCreated = await response.json();
-        
-        setCommunities([communityCreated, ...communities]);
-      });
-  }
-  
-  const form = event.target;
-  const data = new FormData(form);
-  const community = {
-    title: data.get('community-title'),
-    imageUrl: getVerifiedImageURL(data.get('community-img')),
-    creatorSlug: defaultUser,
-  };
-
-  updateWithCommunityCreated(community);
-
-  form.reset();
-}
-
-function createNewScrap(event, scraps, setScraps) {
-  event.preventDefault();
-
-  const updateWithScrapCreated = (scrapObj) => {
-    fetch('/api/scraps', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(scrapObj),
-    })
-      .then(async (response) => {
-        const scrapCreated = await response.json();
-        
-        setScraps([scrapCreated, ...scraps]);
-      });
-  }
-  
-  const form = event.target;
-  const data = new FormData(form);
-  const scrap = {
-    author: data.get('scrap-author'),
-    content: data.get('scrap-content'),
-  };
-
-  updateWithScrapCreated(scrap);
-
-  form.reset();
 }
 
 export default function Home() {
@@ -195,6 +123,47 @@ export default function Home() {
       });
   }, []);
 
+  function createNewCommunity(event) {
+    event.preventDefault();
+  
+    const getVerifiedImageURL = (imageURL) => {
+      const imageFormatsAllowed = ['.png', '.bmp', '.jpg', '.jpeg', '.svg'];
+      const isValidImageURL = imageFormatsAllowed.some(format => imageURL.includes(format));
+  
+      if (!isValidImageURL) {
+        // Isso é necessário para não gerar imagens iguais.
+        const randomNumber = Math.floor(Math.random() * 10);
+        imageURL = `https://picsum.photos/300?random=${randomNumber}`;
+      }
+      
+      return imageURL;
+    }
+    const updateWithCommunityCreated = (communityObj) => {
+      fetch('/api/communities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(communityObj),
+      })
+        .then(async (response) => {
+          const communityCreated = await response.json();
+          
+          setCommunities([communityCreated, ...communities]);
+        });
+    }
+    
+    const form = event.target;
+    const data = new FormData(form);
+    const community = {
+      title: data.get('community-title'),
+      imageUrl: getVerifiedImageURL(data.get('community-img')),
+      creatorSlug: defaultUser,
+    };
+  
+    updateWithCommunityCreated(community);
+  
+    form.reset();
+  }
+
   const [scraps, setScraps] = useState([]);
   useEffect(() => {
     fetch('/api/scraps')
@@ -204,6 +173,58 @@ export default function Home() {
         setScraps(allScraps);
       });
   }, []);
+
+  function createNewScrap(event) {
+    event.preventDefault();
+  
+    const updateWithScrapCreated = (scrapObj) => {
+      fetch('/api/scraps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(scrapObj),
+      })
+        .then(async (response) => {
+          const scrapCreated = await response.json();
+          
+          setScraps([scrapCreated, ...scraps]);
+        });
+    }
+    const verifyColor = (color) => {
+      const isInvalidColor = color == '#000000' || color == '#ffffff';
+      
+      if (isInvalidColor) {
+        const colors = ['#d81d99', '#2e7bb4', '#ef5261', '#ffa600'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        color = randomColor;
+      }
+
+      return color;
+    }
+    
+    const form = event.target;
+    const data = new FormData(form);
+    const scrap = {
+      author: data.get('scrap-author'),
+      content: data.get('scrap-content'),
+      color: verifyColor(data.get('scrap-color')),
+    };
+    
+    updateWithScrapCreated(scrap);
+  
+    form.reset();
+  }
+
+  function resetScrapContentInputColor() {
+    const scrapContentInput = document.getElementsByName('scrap-content')[0];
+
+    scrapContentInput.style.color = '#000';
+  }
+
+  function setScrapContentInputColor(event) {
+    const scrapContentInput = document.getElementsByName('scrap-content')[0];
+
+    scrapContentInput.style.color = event.target.value;
+  }
 
   const [followers, setFollowers] = useState([]);
   useEffect(() => {
@@ -245,9 +266,7 @@ export default function Home() {
               O que você deseja fazer?
             </h2>
 
-            <form class="box-form" action="" onSubmit={(event) => {
-              createNewCommunity(event, defaultUser, communities, setCommunities);
-            }}>
+            <form class="box-form" action="" onSubmit={createNewCommunity}>
               <legend class="box-formtitle">Criar uma nova comunidade</legend>
               <input
                 className="box-input"
@@ -271,7 +290,8 @@ export default function Home() {
             </form>
             <hr />
             <form class="box-form" action="" onSubmit={(event) => {
-              createNewScrap(event, scraps, setScraps);
+              createNewScrap(event);
+              resetScrapContentInputColor();
             }}>
               <legend class="box-formtitle">Criar um novo scrap</legend>
               <input
@@ -292,6 +312,18 @@ export default function Home() {
                 aria-label="Seu scrap (seja gentil)"
                 required
               />
+              <fieldset className="box-fieldset">
+                <label className="label" htmlFor="scrap-color">
+                  Escolha uma cor para o seu scrap:
+                </label>
+                <input
+                  className="input"
+                  id="scrap-color"
+                  type="color"
+                  name="scrap-color"
+                  onInput={setScrapContentInputColor}
+                />
+              </fieldset>
 
               <button className="box-btn -light" type="submit">
                 Deixar um scrap
