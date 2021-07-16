@@ -13,7 +13,9 @@ const Box = styled.div`
     border-color: transparent;
     border-bottom-color: #ecf2fa;
   }
-  
+
+  .__unmargin { margin: 0 !important; }
+
   .box-link {
     font-size: 14px;
     font-weight: 800;
@@ -37,17 +39,21 @@ const Box = styled.div`
   }
 
   .box-title {
+    margin-bottom: 20px;
     font-size: 32px;
     font-weight: 400;
-    margin-bottom: 20px;
-
-    &.-unmargin { margin: 0; }
   }
 
   .box-subtitle {
+    margin-bottom: 20px;
     font-size: 18px;
     font-weight: 400;
-    margin-bottom: 20px;
+
+    span {
+      color: #2e7bb4;
+      
+      &:hover { color: #055c9c; }
+    }
   }
 
   .box-smalltitle {
@@ -55,6 +61,22 @@ const Box = styled.div`
     font-size: 16px;
     font-weight: 700;
     color: #333;
+  }
+
+  .box-form {
+    padding: 8px;
+    border: 1px solid #2E7BB4;
+    border-radius: 8px;
+    transition: border-width 200ms cubic-bezier(0.42, 0, 0.8, 2.07);
+
+    &:hover { border-width: 3px; }
+  }
+
+  .box-formtitle {
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
   }
 
   .box-input {
@@ -84,6 +106,48 @@ const Box = styled.div`
       color: #2e7bb4;
       background-color: #d9e6f6;
     }
+
+    &.-right {
+      float: right;
+      margin-right: 0;
+    }
+  }
+
+  .box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .scraps-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .scrap-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid #b2b2b2;
+    border-radius: 8px;
+
+    .author {
+      font-size: 16px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .date {
+      padding: 3px 5px 3px 3px;
+      font-size: 11px;
+      color: #fff;
+      background-color: #2E7BB4;
+      border-radius: 999px;
+    }
+
+    .content { font-size: 15px; }
   }
 `;
 

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { SiteClient } from 'datocms-client';
 
 import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet} from '../src/lib/AlurakutCommons';
 import MainGrid from '../src/components/MainGrid';
@@ -10,10 +9,10 @@ import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
 function ProfileSidebar(props) {
   return (
     <Box as="aside">
-      <img src={`https://github.com/${props.ghUserName}.png`} alt="Foto de perfil de William Rodrigues" />
+      <img src={`https://github.com/${props.ghDefaultUser}.png`} alt={`Foto de perfil de ${props.ghDefaultUser}`} />
       <hr />
-      <a className="box-link" href={`https://github.com/${props.ghUserName}`}>
-        @{props.ghUserName}
+      <a className="box-link" href={`https://github.com/${props.ghDefaultUser}`}>
+        @{props.ghDefaultUser}
       </a>
       <p className="box-text -about">
         masculino, solteiro(a), Brasil
@@ -45,16 +44,10 @@ function ProfileRelationsBoxContent(props) {
               </li>
             );
           } else {
-            // Gera um número aleatório para gerar imagens diferentes.
-            const randomNumber = Math.floor(Math.random() * 10);
-
             return (
               <li key={item.id}>
-                <a href={item.link} target="_blank" rel="noopener noreferrer external">
-                  <img
-                    src={isValidImgURL(item.imageUrl) ? item.imageUrl : `https://picsum.photos/300?random=${randomNumber}`}
-                    alt={`Capa da comunidade ${item.title}`}
-                  />
+                <a href={`communities/${item.id}`}>
+                  <img src={item.imageUrl} alt={`Capa da comunidade ${item.title}`}/>
                   <span>{item.title}</span>
                 </a>
               </li>
@@ -70,14 +63,118 @@ function ProfileRelationsBoxContent(props) {
   );
 }
 
-function isValidImgURL(imgURL) {
-  const imgFormatsAllowed = ['.png', '.bmp', '.jpg', '.jpeg', '.svg', '.gif'];
+function ScrapsBoxContent(props) {
+  return (
+    <Box>
+      <div class="box-header">
+        <h2 className="box-subtitle">
+          Scraps <span className="clr-blue">({props.scrapsList.length})</span>
+        </h2>
+        <button className="box-btn __unmargin">Ver todos</button>
+      </div>
+      <section className="scraps-section">
+        {props.scrapsList.map((scrap) => {
+          const getDate = () => {
+            const creationDate = new Date(scrap.createdAt);
+            let day = String(creationDate.getDate());
+            day = day.length === 1 ? `0${day}` : day;
+            let month = String(creationDate.getMonth() + 1); // Zero-based.
+            month = month.length === 1 ? `0${month}` : month;
+            let year = String(creationDate.getFullYear()).slice(-2);
+
+            return `${day}/${month}/${year}`;
+          };
+          const date = getDate();
+
+          const scrapColors = ['#D81D99', '#2E7BB4', '#EF5261', '#FFA600'];
+          const randomColor = scrapColors[Math.floor(Math.random() * scrapColors.length)];
+
+          return (
+            <article className="scrap-card" key={scrap.id}>
+              <div className="box-header">
+                <h3 className="author">{scrap.author}</h3>
+                <em className="date">criado em: {date}</em>
+              </div>
+              <p className="content" style={{ color: randomColor }}>{scrap.content}</p>
+            </article>
+          );
+        })}
+      </section>
+    </Box>
+  );
+}
+
+function createNewCommunity(event, defaultUser, communities, setCommunities) {
+  event.preventDefault();
+
+  const getVerifiedImageURL = (imageURL) => {
+    const imageFormatsAllowed = ['.png', '.bmp', '.jpg', '.jpeg', '.svg'];
+    const isValidImageURL = imageFormatsAllowed.some(format => imageURL.includes(format));
+
+    if (!isValidImageURL) {
+      // Isso é necessário para não gerar imagens iguais.
+      const randomNumber = Math.floor(Math.random() * 10);
+      imageURL = `https://picsum.photos/300?random=${randomNumber}`;
+    }
+    
+    return imageURL;
+  }
+  const updateWithCommunityCreated = (communityObj) => {
+    fetch('/api/communities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(communityObj),
+    })
+      .then(async (response) => {
+        const communityCreated = await response.json();
+        
+        setCommunities([communityCreated, ...communities]);
+      });
+  }
   
-  return imgFormatsAllowed.some(format => imgURL.includes(format));
+  const form = event.target;
+  const data = new FormData(form);
+  const community = {
+    title: data.get('community-title'),
+    imageUrl: getVerifiedImageURL(data.get('community-img')),
+    creatorSlug: defaultUser,
+  };
+
+  updateWithCommunityCreated(community);
+
+  form.reset();
+}
+
+function createNewScrap(event, scraps, setScraps) {
+  event.preventDefault();
+
+  const updateWithScrapCreated = (scrapObj) => {
+    fetch('/api/scraps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scrapObj),
+    })
+      .then(async (response) => {
+        const scrapCreated = await response.json();
+        
+        setScraps([scrapCreated, ...scraps]);
+      });
+  }
+  
+  const form = event.target;
+  const data = new FormData(form);
+  const scrap = {
+    author: data.get('scrap-author'),
+    content: data.get('scrap-content'),
+  };
+
+  updateWithScrapCreated(scrap);
+
+  form.reset();
 }
 
 export default function Home() {
-  const userName = 'willy-r';
+  const defaultUser = 'willy-r';
   
   const devsCommunity = [
     'juunegreiros', 
@@ -88,44 +185,33 @@ export default function Home() {
     'peas',
   ];
   
-  /*
-    O valor passado para o useState é o valor inicial.
-    Ele retorna dois valores, nesse casso um array com as comunidades e uma forma
-    de alterar esse array de comunidades.
-  */
-  const client = new SiteClient(process.env.NEXT_PUBLIC_API_TOKEN);
-  
   const [communities, setCommunities] = useState([]);
   useEffect(() => {
-    client.items.all({
-      'filter[type]': '967554',
-      version: 'published'
-    }, { 
-      allPages: true, 
-    })
-      .then(communitiesList => setCommunities(communitiesList))
-      .catch(err => console.error(err))
+    fetch('/api/communities')
+      .then(async (response) => {
+        const allCommunities = await response.json();
+        
+        setCommunities(allCommunities);
+      });
   }, []);
 
-  const createCommunity = async (title, link, imageURL) => {
-    const newCommunity = await client.items.create({
-      itemType: '967554',
-      title: title,
-      link: link,
-      imageUrl: imageURL,
-    });
+  const [scraps, setScraps] = useState([]);
+  useEffect(() => {
+    fetch('/api/scraps')
+      .then(async (response) => {
+        const allScraps = await response.json();
+        
+        setScraps(allScraps);
+      });
+  }, []);
 
-    // Ele sobrescreve a lista de comunidades, não faz uma nova requisição.
-    setCommunities([newCommunity, ...communities]);
-  }
-
-  // Desafio: listar seus seguidores através da API do Github.
   const [followers, setFollowers] = useState([]);
   useEffect(() => {
     fetch('https://api.github.com/users/willy-r/followers')
-      .then(response => response.json())
-      .then(followersList => {
-        const followersNames = followersList.map((followerObj) => followerObj.login);
+      .then(async (response) => {
+        const followers = await response.json();
+        const followersNames = followers.map((followerObj) => followerObj.login);
+        
         setFollowers(followersNames);
       });
   }, []);
@@ -137,15 +223,15 @@ export default function Home() {
   */
   return (
     <>
-      <AlurakutMenu githubUser={userName} />
+      <AlurakutMenu githubUser={defaultUser} />
       <MainGrid>
         <div className="profile-area" style={{ gridArea: 'profile-area' }}>
-          <ProfileSidebar ghUserName={userName} />
+          <ProfileSidebar ghDefaultUser={defaultUser} />
         </div>
         
         <div className="welcome-area" style={{ gridArea: 'welcome-area' }}>
           <Box>
-            <h1 className="box-title -unmargin">
+            <h1 className="box-title __unmargin">
               Bem vindo(a), William
             </h1>
             <p class="box-text">
@@ -159,34 +245,16 @@ export default function Home() {
               O que você deseja fazer?
             </h2>
 
-            <form action="" onSubmit={(event) => {
-              event.preventDefault();
-              
-              const form = event.target;
-              const data = new FormData(form);
-
-              createCommunity(
-                data.get('community-title'),
-                data.get('community-link'),
-                data.get('community-img')
-              );
-
-              form.reset();
+            <form class="box-form" action="" onSubmit={(event) => {
+              createNewCommunity(event, defaultUser, communities, setCommunities);
             }}>
+              <legend class="box-formtitle">Criar uma nova comunidade</legend>
               <input
                 className="box-input"
                 type="text"
                 name="community-title"
                 placeholder="Qual vai ser o nome da sua comunidade?"
                 aria-label="Qual vai ser o nome da sua comunidade?"
-                required
-              />
-              <input
-                className="box-input"
-                type="text"
-                name="community-link"
-                placeholder="URL da comunidade"
-                aria-label="URL da comunidade"
                 required
               />
               <input
@@ -200,14 +268,41 @@ export default function Home() {
               <button className="box-btn" type="submit">
                 Criar comunidade
               </button>
+            </form>
+            <hr />
+            <form class="box-form" action="" onSubmit={(event) => {
+              createNewScrap(event, scraps, setScraps);
+            }}>
+              <legend class="box-formtitle">Criar um novo scrap</legend>
+              <input
+                className="box-input"
+                type="text"
+                maxLength="50"
+                name="scrap-author"
+                placeholder="Seu nome"
+                aria-label="Seu nome"
+                required
+              />
+              <input
+                className="box-input"
+                type="text"
+                maxLength="280"
+                name="scrap-content"
+                placeholder="Seu scrap (seja gentil)"
+                aria-label="Seu scrap (seja gentil)"
+                required
+              />
+
+              <button className="box-btn -light" type="submit">
+                Deixar um scrap
+              </button>
               {/* <button className="box-btn -light" type="button">
                 Escrever depoimento
-              </button>
-              <button className="box-btn -light" type="button">
-                Deixar um scrap
               </button> */}
             </form>
           </Box>
+
+          <ScrapsBoxContent scrapsList={scraps} />
         </div>
         
         <div className="profile-relations-area" style={{ gridArea: 'profile-relations-area' }}>
