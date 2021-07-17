@@ -64,6 +64,21 @@ function ProfileRelationsBoxContent(props) {
 }
 
 function ScrapsBoxContent(props) {
+  function toggleScraps(event) {
+    const buttonForShowingScraps = event.target;
+    const scrapsSection = document.querySelector('.scraps-section');
+
+    if (scrapsSection.classList.contains('-active')) {
+      scrapsSection.style.animation = 'fade-out ease-out 450ms 1';
+      setTimeout(() => scrapsSection.classList.remove('-active'), 440);
+      buttonForShowingScraps.textContent = 'Ver todos';
+    } else {
+      scrapsSection.classList.add('-active');
+      scrapsSection.style.animation = 'fade-in ease-in 450ms 1';
+      buttonForShowingScraps.textContent = 'Ocultar todos';
+    }
+  }
+
   return (
     <Box>
       <div class="box-header">
@@ -73,7 +88,7 @@ function ScrapsBoxContent(props) {
         <button
           className="box-btn __unmargin"
           type="button"
-          onClick={props.toggleScrapsFunction}>
+          onClick={toggleScraps}>
             Ver todos
         </button>
       </div>
@@ -179,6 +194,9 @@ export default function Home() {
       });
   }, []);
 
+  const defaultScrapColor = '#2e7bb4';
+  const [scrapColor, setScrapColor] = useState(defaultScrapColor);
+
   function createNewScrap(event) {
     event.preventDefault();
   
@@ -215,35 +233,9 @@ export default function Home() {
     };
     
     updateWithScrapCreated(scrap);
-  
+    
+    setScrapColor(defaultScrapColor);
     form.reset();
-  }
-
-  function resetScrapContentInputColor() {
-    const scrapContentInput = document.getElementsByName('scrap-content')[0];
-
-    scrapContentInput.style.color = '#2e7bb4';
-  }
-
-  function setScrapContentInputColor(event) {
-    const scrapContentInput = document.getElementsByName('scrap-content')[0];
-
-    scrapContentInput.style.color = event.target.value;
-  }
-
-  function toggleScraps(event) {
-    const buttonForShowingScraps = event.target;
-    const scrapsSection = document.querySelector('.scraps-section');
-
-    if (scrapsSection.classList.contains('-active')) {
-      scrapsSection.style.animation = 'fade-out ease-out 450ms 1';
-      setTimeout(() => scrapsSection.classList.remove('-active'), 440);
-      buttonForShowingScraps.textContent = 'Ver todos';
-    } else {
-      scrapsSection.classList.add('-active');
-      scrapsSection.style.animation = 'fade-in ease-in 450ms 1';
-      buttonForShowingScraps.textContent = 'Ocultar todos';
-    }
   }
 
   const [followers, setFollowers] = useState([]);
@@ -309,10 +301,7 @@ export default function Home() {
               </button>
             </form>
             <hr />
-            <form class="box-form" action="" onSubmit={(event) => {
-              createNewScrap(event);
-              resetScrapContentInputColor();
-            }}>
+            <form class="box-form" action="" onSubmit={createNewScrap}>
               <legend class="box-formtitle">Criar um novo scrap</legend>
               <input
                 className="box-input"
@@ -330,7 +319,7 @@ export default function Home() {
                 name="scrap-content"
                 placeholder="Seu scrap (seja gentil)"
                 aria-label="Seu scrap (seja gentil)"
-                style={{ color: '#2e7bb4' }}
+                style={{ color: scrapColor }}
                 required
               />
               <fieldset className="box-fieldset">
@@ -348,9 +337,9 @@ export default function Home() {
                   id="scrap-color"
                   type="color"
                   name="scrap-color"
-                  defaultValue="#2e7bb4"
+                  defaultValue={scrapColor}
                   list="suggested-colors"
-                  onInput={setScrapContentInputColor}
+                  onInput={(event) => setScrapColor(event.target.value)}
                 />
               </fieldset>
 
@@ -363,7 +352,7 @@ export default function Home() {
             </form>
           </Box>
 
-          <ScrapsBoxContent scrapsList={scraps} toggleScrapsFunction={toggleScraps} />
+          <ScrapsBoxContent scrapsList={scraps} />
         </div>
         
         <div className="profile-relations-area" style={{ gridArea: 'profile-relations-area' }}>
