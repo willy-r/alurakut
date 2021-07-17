@@ -222,7 +222,7 @@ export default function Home() {
   function resetScrapContentInputColor() {
     const scrapContentInput = document.getElementsByName('scrap-content')[0];
 
-    scrapContentInput.style.color = '#000';
+    scrapContentInput.style.color = '#2e7bb4';
   }
 
   function setScrapContentInputColor(event) {
@@ -330,9 +330,16 @@ export default function Home() {
                 name="scrap-content"
                 placeholder="Seu scrap (seja gentil)"
                 aria-label="Seu scrap (seja gentil)"
+                style={{ color: '#2e7bb4' }}
                 required
               />
               <fieldset className="box-fieldset">
+                <datalist id="suggested-colors">
+                  <option>#d81d99</option>
+                  <option>#ef5261</option>
+                  <option>#ffa600</option>
+                </datalist>
+
                 <label className="label" htmlFor="scrap-color">
                   Escolha uma cor para o seu scrap:
                 </label>
@@ -341,6 +348,8 @@ export default function Home() {
                   id="scrap-color"
                   type="color"
                   name="scrap-color"
+                  defaultValue="#2e7bb4"
+                  list="suggested-colors"
                   onInput={setScrapContentInputColor}
                 />
               </fieldset>

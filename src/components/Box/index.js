@@ -7,6 +7,8 @@ const Box = styled.div`
   padding: 16px;
   margin-bottom: 10px;
 
+  img { border-radius: 8px; }
+
   hr {
     margin-top: 12px;
     margin-bottom: 8px;
@@ -86,7 +88,6 @@ const Box = styled.div`
     > .label { font-size: 15px; }
 
     > .input {
-      padding: 2px;
       margin-left: 5px;
       border-radius: 8px;
     }
