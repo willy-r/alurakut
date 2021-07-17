@@ -133,9 +133,21 @@ const Box = styled.div`
   }
 
   .scraps-section {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 15px;
+
+    &.-active { display: flex; }
+
+    @keyframes fade-in {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes fade-out {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
   }
   
   .scrap-card {

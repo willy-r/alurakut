@@ -70,7 +70,12 @@ function ScrapsBoxContent(props) {
         <h2 className="box-subtitle">
           Scraps <span className="clr-blue">({props.scrapsList.length})</span>
         </h2>
-        <button className="box-btn __unmargin">Ver todos</button>
+        <button
+          className="box-btn __unmargin"
+          type="button"
+          onClick={props.toggleScrapsFunction}>
+            Ver todos
+        </button>
       </div>
       <section className="scraps-section">
         {props.scrapsList.map((scrap) => {
@@ -226,6 +231,21 @@ export default function Home() {
     scrapContentInput.style.color = event.target.value;
   }
 
+  function toggleScraps(event) {
+    const buttonForShowingScraps = event.target;
+    const scrapsSection = document.querySelector('.scraps-section');
+
+    if (scrapsSection.classList.contains('-active')) {
+      scrapsSection.style.animation = 'fade-out ease-out 450ms 1';
+      setTimeout(() => scrapsSection.classList.remove('-active'), 440);
+      buttonForShowingScraps.textContent = 'Ver todos';
+    } else {
+      scrapsSection.classList.add('-active');
+      scrapsSection.style.animation = 'fade-in ease-in 450ms 1';
+      buttonForShowingScraps.textContent = 'Ocultar todos';
+    }
+  }
+
   const [followers, setFollowers] = useState([]);
   useEffect(() => {
     fetch('https://api.github.com/users/willy-r/followers')
@@ -334,7 +354,7 @@ export default function Home() {
             </form>
           </Box>
 
-          <ScrapsBoxContent scrapsList={scraps} />
+          <ScrapsBoxContent scrapsList={scraps} toggleScrapsFunction={toggleScraps} />
         </div>
         
         <div className="profile-relations-area" style={{ gridArea: 'profile-relations-area' }}>
