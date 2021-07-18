@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 
+import { parseCookies } from 'nookies';
+import jwt from 'jsonwebtoken';
+
 import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet} from '../src/lib/AlurakutCommons';
 import MainGrid from '../src/components/MainGrid';
 import Box from '../src/components/Box';
@@ -9,10 +12,10 @@ import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
 function ProfileSidebar(props) {
   return (
     <Box as="aside">
-      <img src={`https://github.com/${props.ghDefaultUser}.png`} alt={`Foto de perfil de ${props.ghDefaultUser}`} />
+      <img src={`https://github.com/${props.githubUser}.png`} alt={`Foto de perfil de ${props.githubUser}`} />
       <hr />
-      <a className="box-link" href={`https://github.com/${props.ghDefaultUser}`}>
-        @{props.ghDefaultUser}
+      <a className="box-link" href={`https://github.com/${props.githubUser}`}>
+        @{props.githubUser}
       </a>
       <p className="box-text">
         masculino, solteiro(a), Brasil
@@ -24,10 +27,12 @@ function ProfileSidebar(props) {
 }
 
 function ProfileRelationsBoxContent(props) {
+  const itemsCount = props.itemsList.length;
+
   return (
     <ProfileRelationsBoxWrapper>
       <h2 className="box-smalltitle">
-        {props.boxTitle} <a className="box-link" href="">({props.itemsList.length})</a>
+        {props.boxTitle} <a className="box-link" href="">({itemsCount == 100 ? `${itemsCount}+` : itemsCount})</a>
       </h2>
       <ul>
         {props.itemsList.slice(0, 6).map((item) => {
@@ -121,8 +126,8 @@ function ScrapsBoxContent(props) {
   );
 }
 
-export default function Home() {
-  const defaultUser = 'willy-r';
+export default function Home(props) {
+  const githubUser = props.githubUser;
   
   const devsCommunity = [
     'juunegreiros', 
@@ -176,7 +181,7 @@ export default function Home() {
     const community = {
       title: data.get('community-title'),
       imageUrl: getVerifiedImageURL(data.get('community-img')),
-      creatorSlug: defaultUser,
+      creatorSlug: githubUser,
     };
   
     updateWithCommunityCreated(community);
@@ -240,12 +245,14 @@ export default function Home() {
 
   const [followers, setFollowers] = useState([]);
   useEffect(() => {
-    fetch('https://api.github.com/users/willy-r/followers')
+    fetch(`https://api.github.com/users/${githubUser}/followers?per_page=100`)
       .then(async (response) => {
-        const followers = await response.json();
-        const followersNames = followers.map((followerObj) => followerObj.login);
-        
-        setFollowers(followersNames);
+        if (response.ok) {
+          const followers = await response.json();
+          const followersNames = followers.map((followerObj) => followerObj.login);
+          
+          setFollowers(followersNames);
+        }
       });
   }, []);
 
@@ -256,16 +263,16 @@ export default function Home() {
   */
   return (
     <>
-      <AlurakutMenu githubUser={defaultUser} />
+      <AlurakutMenu githubUser={githubUser} />
       <MainGrid>
         <div className="profile-area" style={{ gridArea: 'profile-area' }}>
-          <ProfileSidebar ghDefaultUser={defaultUser} />
+          <ProfileSidebar githubUser={githubUser} />
         </div>
         
         <div className="welcome-area" style={{ gridArea: 'welcome-area' }}>
           <Box>
             <h1 className="box-title __unmargin">
-              Bem vindo(a), William
+              Bem vindo(a), {githubUser.toUpperCase()}
             </h1>
             <p class="box-text">
               <strong>Sorte de hoje</strong>: O melhor profeta do futuro é o passado
@@ -292,8 +299,8 @@ export default function Home() {
                 className="box-input"
                 type="text"
                 name="community-img"
-                placeholder="URL de uma imagem para ser usada como capa"
-                aria-label="URL de uma imagem para ser usada como capa"
+                placeholder="URL de uma imagem para a capa"
+                aria-label="URL de uma imagem para a capa"
               />
 
               <button className="box-btn" type="submit">
@@ -374,4 +381,33 @@ export default function Home() {
       </MainGrid>
     </>
   );
+}
+
+export async function getServerSideProps(context) {
+  const cookies = parseCookies(context);
+  const token = cookies.USER_TOKEN;
+  // Verifica se o usuário está autenticado.
+  const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
+    headers: { Authorization: token },
+  })
+    .then((response) => response.json());
+
+  console.log('Está autenticado?', isAuthenticated);
+
+  if (!isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    };
+  }
+
+  // Se o usuário estiver autenticado, a gente devolve o nome de usuário do GitHub dele.
+  const { githubUser } = jwt.decode(token);
+  console.log('Usuário autenticado:', githubUser);
+  
+  return {
+    props: { githubUser },
+  };
 }
