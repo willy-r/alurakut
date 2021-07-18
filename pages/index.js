@@ -129,15 +129,6 @@ function ScrapsBoxContent(props) {
 export default function Home(props) {
   const githubUser = props.githubUser;
   
-  const devsCommunity = [
-    'juunegreiros', 
-    'omariosouto', 
-    'rafaballerini', 
-    'marcobrunodev',
-    'felipefialho',
-    'peas',
-  ];
-  
   const [communities, setCommunities] = useState([]);
   useEffect(() => {
     fetch('/api/communities')
@@ -364,18 +355,13 @@ export default function Home(props) {
         
         <div className="profile-relations-area" style={{ gridArea: 'profile-relations-area' }}>
           <ProfileRelationsBoxContent
-            boxTitle={'Meus seguidores no GitHub'}
+            boxTitle={'Meus seguidores'}
             itemsList={followers}
           />
 
           <ProfileRelationsBoxContent
             boxTitle={'Minhas comunidades'}
             itemsList={communities}
-          />
-    
-          <ProfileRelationsBoxContent
-            boxTitle={'Pessoas da comunidade'}
-            itemsList={devsCommunity}
           />
         </div>
       </MainGrid>
@@ -392,8 +378,6 @@ export async function getServerSideProps(context) {
   })
     .then((response) => response.json());
 
-  console.log('Está autenticado?', isAuthenticated);
-
   if (!isAuthenticated) {
     return {
       redirect: {
@@ -405,7 +389,6 @@ export async function getServerSideProps(context) {
 
   // Se o usuário estiver autenticado, a gente devolve o nome de usuário do GitHub dele.
   const { githubUser } = jwt.decode(token);
-  console.log('Usuário autenticado:', githubUser);
   
   return {
     props: { githubUser },
