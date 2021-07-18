@@ -99,23 +99,18 @@ function ScrapsBoxContent(props) {
       </div>
       <section className="scraps-section">
         {props.scrapsList.map((scrap) => {
-          const getDate = () => {
-            const creationDate = new Date(scrap.createdAt);
-            let day = String(creationDate.getDate());
-            day = day.length === 1 ? `0${day}` : day;
-            let month = String(creationDate.getMonth() + 1); // Zero-based.
-            month = month.length === 1 ? `0${month}` : month;
-            let year = String(creationDate.getFullYear()).slice(-2);
-
-            return `${day}/${month}/${year}`;
-          };
-          const date = getDate();
+          const creationDate = new Date(scrap.createdAt);
+          const formattedDate = creationDate.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+          });
 
           return (
             <article className="scrap-card" key={scrap.id}>
               <div className="box-header">
                 <h3 className="author">{scrap.author}</h3>
-                <em className="date">{date}</em>
+                <em className="date">{formattedDate}</em>
               </div>
               <p className="content" style={{ color: scrap.color }}>{scrap.content}</p>
             </article>
@@ -123,6 +118,56 @@ function ScrapsBoxContent(props) {
         })}
       </section>
     </Box>
+  );
+}
+
+function WelcomeBoxTime({ dateObj }) {
+  let timeInfo;
+  const hours = dateObj.getHours();
+  const minutes = dateObj.getMinutes();
+
+  // @TODO: Refatorar.
+  if (hours <= 4 && minutes <= 59 ) {
+    timeInfo = {
+      message: 'muito boa madrugada',
+      emoji: '🦉',
+    };
+  } else if (hours <= 8 && minutes <= 59 ) {
+    timeInfo = {
+      message: 'muito bom dia',
+      emoji: '🌅',
+    };
+  } else if (hours <= 11 && minutes <= 59) {
+    timeInfo = {
+      message: 'muito bom dia',
+      emoji: '☀️',
+    };
+  } else if (hours <= 16 && minutes <= 59) {
+    timeInfo = {
+      message: 'muito boa tarde',
+      emoji: '☀️',
+    };
+  } else if (hours <= 17 && minutes <= 59) {
+    timeInfo = {
+      message: 'muito boa tarde',
+      emoji: '🌇',
+    };
+  } else {
+    timeInfo = {
+      message: 'muito boa noite',
+      emoji: '🌕',
+    };
+  }
+
+  const formattedTime = dateObj.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute:'2-digit',
+  });
+   
+  return (
+    <p class="box-text">
+      Agora são exatamente <strong>{formattedTime}</strong>, {timeInfo.message}! {timeInfo.emoji}
+    </p>
   );
 }
 
@@ -247,6 +292,19 @@ export default function Home(props) {
       });
   }, []);
 
+  const currentDateObj = new Date();
+  const [dateObj, setDateObj] = useState(currentDateObj);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentDateObj = new Date();
+
+      setDateObj(currentDateObj);
+    }, 60_000);
+    const unmountFunction = () => clearInterval(interval);
+    
+    return unmountFunction;
+  }, []);
+
   /*
     Utiliza os componentes criados.
     Não é possível colocar na mesma raíz duas tags HTML. Para isso se usa os fragments do React.
@@ -265,9 +323,7 @@ export default function Home(props) {
             <h1 className="box-title __unmargin">
               Bem vindo(a), {githubUser.toUpperCase()}
             </h1>
-            <p class="box-text">
-              <strong>Sorte de hoje</strong>: O melhor profeta do futuro é o passado
-            </p>
+            <WelcomeBoxTime dateObj={dateObj} />
             <OrkutNostalgicIconSet />
           </Box>
 

@@ -34,7 +34,7 @@ const Box = styled.div`
 
   .box-text {
     margin-top: 8px;
-    font-size: 12px;
+    font-size: 13px;
     color: #999;
   }
 
