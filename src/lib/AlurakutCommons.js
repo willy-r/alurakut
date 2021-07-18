@@ -1,46 +1,56 @@
-import React from 'react';
+import { useState } from 'react';
 import styled, { css } from 'styled-components';
 import NextLink from 'next/link';
+
 
 const BASE_URL = 'http://alurakut.vercel.app/';
 const v = '1';
 
-
 function Link({ href, children, ...props }) {
   return (
     <NextLink href={href} passHref>
-      <a {...props}>
-        {children}
-      </a>
+      <a {...props}>{children}</a>
     </NextLink>
-  )
+  );
 }
 
-// ================================================================================================================
-// Menu
-// ================================================================================================================
+
+// MENU
+
 export function AlurakutMenu({ githubUser }) {
-  const [isMenuOpen, setMenuState] = React.useState(false);
+  const [isMenuOpen, setMenuState] = useState(false);
+  const menuItems = [
+    { name: 'Início', slug: '/'},
+    { name: 'Amigos', slug: '/friends'}, 
+    { name: 'Comunidades', slug: '/communities'},
+  ];
+
   return (
     <AlurakutMenu.Wrapper isMenuOpen={isMenuOpen}>
-      <div className="container">
+      <div className="menu-container">
         <AlurakutMenu.Logo src={`${BASE_URL}/logo.svg`} />
 
         <nav style={{ flex: 1 }}>
-          {[{ name: 'Inicio', slug: '/'}, {name: 'Amigos', slug: '/amigos'}, {name: 'Comunidades', slug: '/comunidades'}].map((menuItem) => (
-            <Link key={`key__${menuItem.name.toLocaleLowerCase()}`} href={`${menuItem.slug.toLocaleLowerCase()}`}>
-              {menuItem.name}
-            </Link>
-          ))}
+          {menuItems.map((menuItem) => {
+            return (
+              <Link
+                key={`key__${menuItem.name.toLocaleLowerCase()}`}
+                href={`${menuItem.slug.toLocaleLowerCase()}`}
+              >
+                {menuItem.name}
+              </Link>
+            );
+          })}
         </nav>
 
         <nav>
-
-          <a href={`/logout`}>
-            Sair
-          </a>
+          <a href="/api/logout">Sair</a>
           <div>
-            <input placeholder="Pesquisar no Orkut" />
+            <input
+              type="search"
+              placeholder="Pesquisar no Alurakut"
+              aria-label="Pesquisar no Alurakut"
+            />
           </div>
         </nav>
 
@@ -49,167 +59,51 @@ export function AlurakutMenu({ githubUser }) {
           {!isMenuOpen && <img src={`${BASE_URL}/icons/menu-closed.svg?v=${v}`} />}
         </button>
       </div>
+
       <AlurakutMenuProfileSidebar githubUser={githubUser} />
     </AlurakutMenu.Wrapper>
-  )
+  );
 }
-AlurakutMenu.Wrapper = styled.header`
-  width: 100%;
-  background-color: #308BC5;
-
-  .alurakutMenuProfileSidebar {
-    background: white;
-    position: fixed;
-    z-index: 100;
-    padding: 46px;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    top: 48px;
-    transition: .3s;
-    pointer-events: ${({ isMenuOpen }) => isMenuOpen ? 'all' : 'none'};
-    opacity: ${({ isMenuOpen }) => isMenuOpen ? '1' : '0'};
-    transform: ${({ isMenuOpen }) => isMenuOpen ? 'translateY(0)' : 'translateY(calc(-100% - 48px))'};
-    @media(min-width: 860px) {
-      display: none;
-    }
-    > div {
-      max-width: 400px;
-      margin: auto;
-    }
-    a {
-      font-size: 18px;
-    }
-    .boxLink {
-      font-size: 18px;
-      color: #2E7BB4;
-      -webkit-text-decoration: none;
-      text-decoration: none;
-      font-weight: 800;
-    }
-
-    hr {
-      margin-top: 12px;
-      margin-bottom: 8px;
-      border-color: transparent;
-      border-bottom-color: #ECF2FA;
-    }
-  }
-
-  .container {
-    background-color: #308BC5;
-    padding: 7px 16px;
-    max-width: 1110px;
-    margin: auto;
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-    z-index: 101;
-    @media(min-width: 860px) {
-      justify-content: flex-start;
-    }
-
-    button {
-      border: 0;
-      background: transparent;
-      align-self: center;
-      display: inline-block;
-      @media(min-width: 860px) {
-        display: none;
-      }
-    }
-
-    nav {
-      display: none;
-      @media(min-width: 860px) {
-        display: flex;
-      }
-      a {
-        font-size: 12px;
-        color: white;
-        padding: 10px 16px;
-        position: relative;
-        text-decoration: none;
-        &:after {
-          content: " ";
-          background-color: #5292C1;
-          display: block;
-          position: absolute;
-          width: 1px;
-          height: 12px;
-          margin: auto;
-          left: 0;
-          top: 0;
-          bottom: 0;
-        }
-      }
-    }
-    input {
-      color: #ffffff;
-      background: #5579A1;
-      padding: 10px 42px;
-      border: 0;
-      background-image: url(${`${BASE_URL}/icons/search.svg`});
-      background-position: 15px center;
-      background-repeat: no-repeat;
-      border-radius: 1000px;
-      font-size: 12px;
-      ::placeholder {
-        color: #ffffff;
-        opacity: 1;
-      }
-    } 
-  }
-`;
-AlurakutMenu.Logo = styled.img`
-  background-color: #ffffff;
-  padding: 9px 14px;
-  border-radius: 1000px;
-  height: 34px;
-`;
 
 function AlurakutMenuProfileSidebar({ githubUser }) {
   return (
-    <div className="alurakutMenuProfileSidebar">
-      <div>
+    <div className="menu-sidebar">
+      <div className="menu-wrapper">
         <img src={`https://github.com/${githubUser}.png`} style={{ borderRadius: '8px' }} />
         <hr />
-        <p>
-          <a className="boxLink" href={`/user/${githubUser}`}>
-            @{githubUser}
-          </a>
+        <a className="profile-link" href={`https://github.com/${githubUser}`}>
+          @{githubUser}
+        </a>
+        <p className="box-text">
+          masculino, solteiro(a), Brasil
         </p>
         <hr />
-
         <AlurakutProfileSidebarMenuDefault />
       </div>
     </div>
-  )
+  );
 }
 
-// ================================================================================================================
-// AlurakutProfileSidebarMenuDefault
-// ================================================================================================================
 export function AlurakutProfileSidebarMenuDefault() {
   return (
     <AlurakutProfileSidebarMenuDefault.Wrapper>
       <nav>
         <a href="/">
           <img src={`${BASE_URL}/icons/user.svg`} />
-            Perfil
-          </a>
+          Perfil
+        </a>
         <a href="/">
           <img src={`${BASE_URL}/icons/book.svg`} />
-            Recados
-          </a>
+          Recados
+        </a>
         <a href="/">
           <img src={`${BASE_URL}/icons/camera.svg`} />
-            Fotos
-          </a>
+          Fotos
+        </a>
         <a href="/">
           <img src={`${BASE_URL}/icons/sun.svg`} />
-            Depoimentos
-          </a>
+          Depoimentos
+        </a>
       </nav>
       <hr />
       <nav>
@@ -217,292 +111,442 @@ export function AlurakutProfileSidebarMenuDefault() {
           <img src={`${BASE_URL}/icons/plus.svg`} />
           GitHub Trends
         </a>
-        <a href="/logout">
-          <img src={`${BASE_URL}//icons/logout.svg`} />
-            Sair
-          </a>
+        <a href="/api/logout">
+          <img src={`${BASE_URL}/icons/logout.svg`} />
+          Sair
+        </a>
       </nav>
     </AlurakutProfileSidebarMenuDefault.Wrapper>
   )
 }
-AlurakutProfileSidebarMenuDefault.Wrapper = styled.div`
-  a {
-    font-size: 12px;
-    color: #2E7BB4;
-    margin-bottom: 16px;
+
+AlurakutMenu.Wrapper = styled.header`
+  width: 100%;
+  background-color: #308BC5;
+
+  .menu-container {
+    position: relative;
+    z-index: 101;
     display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    text-decoration: none;
-    img {
-      width: 16px;
-      height: 16px;
-      margin-right: 5px; 
+    justify-content: space-between;
+    padding: 7px 16px;
+    max-width: 1110px;
+    margin: auto;
+    background-color: #308BC5;
+    
+    @media(min-width: 860px) {
+      justify-content: flex-start;
+    }
+
+    button {
+      align-self: center;
+      display: inline-block;
+      border: 0;
+      background-color: transparent;
+      
+      @media(min-width: 860px) {
+        display: none;
+      }
+    }
+
+    nav {
+      display: none;
+      
+      @media(min-width: 860px) {
+        display: flex;
+      }
+
+      a {
+        position: relative;
+        padding: 10px 16px;
+        font-size: 12px;
+        color: #fff;
+        text-decoration: none;
+
+        &:after {
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          display: block;
+          width: 2px;
+          height: 12px;
+          margin: auto;
+          content: '';
+          background-color: #5292C1;
+        }
+      }
+    }
+
+    input {
+      padding: 10px 42px;
+      font-size: 11px;
+      color: #fff;
+      background: #5579A1 url(${`${BASE_URL}/icons/search.svg`}) 15px center no-repeat;
+      border: 0;
+      border-radius: 999px;
+      
+      ::placeholder {
+        color: #fff;
+        opacity: 1;
+      }
+    } 
+  }
+
+  .menu-sidebar {
+    position: fixed;
+    top: 0;
+    z-index: 3;
+    padding: 46px;
+    background-color: #fff;
+    transition: 300ms;
+    pointer-events: ${({ isMenuOpen }) => isMenuOpen ? 'all' : 'none'};
+    opacity: ${({ isMenuOpen }) => isMenuOpen ? '1' : '0'};
+    transform: ${({ isMenuOpen }) => isMenuOpen ? 'translateY(0)' : 'translateY(calc(-100% - 48px))'};
+    
+    @media(min-width: 860px) {
+      display: none;
+    }
+
+    > .menu-wrapper {
+      max-width: 400px;
+
+      a {
+        font-size: 18px;
+        text-decoration: none;
+      }
+
+      .profile-link {
+        font-size: 20px;
+        color: #2E7BB4;
+        font-weight: 800;
+      }
+
+      .box-text {
+        margin-top: 8px;
+        font-size: 16px;
+        color: #999;
+      }
+
+      hr {
+        margin-top: 12px;
+        margin-bottom: 8px;
+        border-color: transparent;
+        border-bottom-color: #ECF2FA;
+      }
     }
   }
 `;
 
-// ================================================================================================================
+AlurakutMenu.Logo = styled.img`
+  padding: 9px 14px;
+  height: 34px;
+  background-color: #fff;
+  border-radius: 999px;
+`;
+
+AlurakutProfileSidebarMenuDefault.Wrapper = styled.div`
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 12px;
+    color: #2E7BB4;
+    margin-bottom: 16px;
+    text-decoration: none;
+    
+    img {
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+    }
+  }
+`;
+
+
 // OrkutNostalgicIconSet
-// ================================================================================================================
+
 export function OrkutNostalgicIconSet(props) {
+  const iconsList = [
+    { name: 'Recados', slug: 'recados', icon: 'book' },
+    { name: 'Fotos', slug: 'fotos', icon: 'camera' },
+    { name: 'Videos', slug: 'videos', icon: 'video-camera' },
+    { name: 'Fãs', slug: 'fas', icon: 'star' },
+    { name: 'Mensagens', slug: 'mensagens', icon: 'email' },
+  ];
+  const personalityIcons = [
+    { name: 'Confiável', slug: 'confiavel', icon: 'smile' },
+    { name: 'Legal', slug: 'legal', icon: 'cool' },
+    { name: 'Sexy', slug: 'sexy', icon: 'heart' },
+  ];
+
   return (
     <OrkutNostalgicIconSet.List>
-      {[
-        { name: 'Recados', slug: 'recados', icon: 'book' },
-        { name: 'Fotos', slug: 'fotos', icon: 'camera' },
-        { name: 'Videos', slug: 'videos', icon: 'video-camera' },
-        { name: 'Fãs', slug: 'fas', icon: 'star' },
-        { name: 'Mensagens', slug: 'mensagens', icon: 'email' },
-      ].map(({ name, slug, icon }) => (
-        <li key={`orkut__icon_set__${slug}`}>
-          <span style={{ gridArea: 'title' }} className="OrkutNostalgicIconSet__title">
-            {name}
-          </span>
-          <span className="OrkutNostalgicIconSet__number" style={{ gridArea: 'number' }}>
-            <img key={`orkut__icon_set__${slug}_img`} className="OrkutNostalgicIconSet__iconSample" src={`https://alurakut.vercel.app/icons/${icon}.svg`} />
-            {props[slug] ? props[slug] : 0}
-          </span>
-        </li>
-      ))}
-      {[
-        { name: 'Confiável', slug: 'confiavel', icon: 'smile' },
-        { name: 'Legal', slug: 'legal', icon: 'cool' },
-        { name: 'Sexy', slug: 'sexy', icon: 'heart' },
-      ].map(({ name, slug, icon }) => {
-        const total = props[slug] ? props[slug] : 3;
+      {iconsList.map(({ name, slug, icon }) => {
         return (
           <li key={`orkut__icon_set__${slug}`}>
-            <span className="OrkutNostalgicIconSet__title">
+            <span className="icon-title" style={{ gridArea: 'title' }}>
               {name}
             </span>
-            <span className="OrkutNostalgicIconSet__iconComplex" className="OrkutNostalgicIconSet__number" style={{ gridArea: 'number' }}>
-              {[0, 1, 2].map((_, index) => {
+            <span className="icon-number" style={{ gridArea: 'number' }}>
+              <img
+                className="sample"
+                src={`https://alurakut.vercel.app/icons/${icon}.svg`}
+                key={`orkut__icon_set__${slug}_img`}
+              />
+              {props[slug] ? props[slug] : 0}
+            </span>
+          </li>
+        );  
+      })}
+      {personalityIcons.map(({ name, slug, icon }) => {
+        const total = props[slug] ? props[slug] : 2;
+        
+        return (
+          <li key={`orkut__icon_set__${slug}`}>
+            <span className="icon-title">{name}</span>
+            <span className="icon-number" style={{ gridArea: 'number' }}>
+              {[...Array(personalityIcons.length)].map((_, index) => {
                 const isHeartActive = index <= (total - 1);
-                return <img key={`orkut__icon_set__${slug}_img_${index}`} src={`https://alurakut.vercel.app/icons/${icon}.svg`} style={{ marginRight: '2px', opacity: isHeartActive ? 1 : '0.5' }} />
+
+                return (
+                  <img
+                    src={`https://alurakut.vercel.app/icons/${icon}.svg`}
+                    style={{ marginRight: '2px', opacity: isHeartActive ? 1 : 0.5 }}
+                    key={`orkut__icon_set__${slug}_img_${index}`}
+                  />
+                );
               })}
             </span>
           </li>
         );
       })}
     </OrkutNostalgicIconSet.List>
-  )
+  );
 }
+
 OrkutNostalgicIconSet.List = styled.ul`
-  margin-top: 32px;
-  list-style: none;
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
+  margin-top: 32px;
+  list-style: none;
+
+  @media (max-width: 409px) {
+    justify-content: flex-start;
+    gap: 5px;
+  }
+
   li {
     font-size: 12px;
     color: #5A5A5A;
     display: grid;
-    grid-template-areas:
-      "title title"
-      "number number"; 
+    grid-template-areas: "title title" "number number"; 
     
-    &:not(:last-child) {
-      margin-right: 5px;
-    }
-    .OrkutNostalgicIconSet__title {
+    &:not(:last-child) { margin-right: 5px; }
+    
+    .icon-title {
       display: block;
-      font-style: italic; 
+      font-style: italic;
     }
-    .OrkutNostalgicIconSet__number {
-      min-width: 15px;
+
+    .icon-number {
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      .OrkutNostalgicIconSet__iconSample {
-        margin-right: 7px;
-      }
+      min-width: 15px;
+      
+      .sample { margin-right: 7px; }
     }
   }
 `;
 
-// ================================================================================================================
+
 // Login Page
-// ================================================================================================================
+
 const AlurakutLoginScreen = css`
   :root {
-    --backgroundPrimary: #D9E6F6;
-    --backgroundSecondary: #F1F9FE;
-    --backgroundTertiary: #FFFFFF;
-    --backgroundQuarternary: #BBCDE8;
-    --colorPrimary: #2E7BB4;
-    --colorSecondary: #388BB0;
-    --colorTertiary: #2F4A71;
-    --colorQuarternary: #D81D99;
-    --textPrimaryColor: #333333;
-    --textSecondaryColor: #FFFFFF;
-    --textTertiaryColor: #5A5A5A;
-    --textQuarternaryColor: #C5C6CA;
-    --commonRadius: 8px;
+    --clr-primary: #2E7BB4;
+    --clr-secondary: #388BB0;
+    --clr-tertiary: #2F4A71;
+    --clr-quarternary: #D81D99;
+
+    --txt-primary: #333333;
+    --txt-secondary: #FFFFFF;
+    --txt-tertiary: #5A5A5A;
+    --txt-quarternary: #C5C6CA;
+
+    --bgc-primary: #D9E6F6;
+    --bgc-secondary: #F1F9FE;
+    --bgc-tertiary: #FFFFFF;
+    --bgc-quarternary: #BBCDE8;
+    
+    --common-radius: 8px;
   }
 
 
-  .loginScreen {
-    padding: 16px;
-    max-width: 1110px;
-    display: grid;
+  .login-screen {
     --gap: 12px;
     --gutter: 16px;
+
+    display: grid;
     grid-gap: var(--gap);
-    grid-template-areas: 
-      "logoArea"
-      "formArea"
-      "footerArea";
+    grid-template-areas: "logo-area" "form-area" "footer-area";
+    padding: 16px;
+    max-width: 1110px;
+
     @media(min-width: 860px) {
       grid-template-columns: 2fr 1fr;
-      grid-template-areas: 
-              "logoArea formArea"
-              "logoArea formArea"
-              "footerArea footerArea";
+      grid-template-areas: "logo-area form-area" "logo-area form-area" "footer-area footer-area";
     }
-    .logoArea {
-      grid-area: logoArea;
-      background-color: var(--backgroundTertiary);
-      border-radius: var(--commonRadius);
-      padding: var(--gutter);
-      text-align: center;
+
+    .logo-area {
       display: flex;
       flex-direction: column;
       flex-wrap: wrap;
       justify-content: center;
       align-items: center;
+      padding: var(--gutter);
       min-height: 263px;
+      grid-area: logo-area;
+      text-align: center;
+      background-color: var(--bgc-tertiary);
+      border-radius: var(--common-radius);
+      
       @media(min-width: 860px) {
         min-height: 368px;
       }
+
       p {
         font-size: 12px;
-        line-height: 1.2;
-        &:not(:last-child) {
-          margin-bottom: 12px;
-        }
-        strong {
-          color: var(--colorQuarternary);
-        }
+        line-height: 1.2em;
+        
+        &:not(:last-child) { margin-bottom: 12px; }
+        
+        strong { color: var(--clr-quarternary); }
       }
+
       img {
         max-height: 45px;
         margin-bottom: 36px;
       }
     }
-    .formArea {
-      grid-area: formArea;
+
+    .form-area {
       display: flex;
       flex-wrap: wrap;
       flex-direction: column;
+      grid-area: form-area;
+      
       .box {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        text-align: center;
-        padding: var(--gutter);
-        padding-left: 50px;
-        padding-right: 50px;
-        background-color: var(--backgroundSecondary);
-        border-radius: var(--commonRadius);
         flex: 1;
-        &:not(:last-child) {
-          margin-bottom: var(--gap);
-        }
+        padding: var(--gutter) 50px;
+        text-align: center;
+        background-color: var(--bgc-secondary);
+        border-radius: var(--common-radius);
+        
+        &:not(:last-child) { margin-bottom: var(--gap); }
+        
         &:first-child {
           min-height: 224px;
+          
           @media(min-width: 860px) {
             min-height: 282px;
           }
         }
-        p {
-          font-size: 14px;
-        }
+
+        p { font-size: 14px; }
+        
         a {
           text-decoration: none;
-          color: var(--colorPrimary);
+          color: var(--clr-primary);
         }
+
         input {
-          width: 100%;
           display: block;
-          border: 1px solid var(--textQuarternaryColor);
+          width: 100%;
           padding: 12px;
-          background-color: var(--backgroundTertiary);
-          border-radius: var(--commonRadius);
           margin-top: 24px;
           margin-bottom: 16px;
+          background-color: var(--bgc-tertiary);
+          border: 1px solid var(--txt-quarternary);
+          border-radius: var(--common-radius);
         }
+
         button {
-          width: 100%;
           display: block;
-          border: 0;
           padding: 12px;
-          border-radius: var(--commonRadius);
-          background-color: var(--colorPrimary);
-          color: var(--textSecondaryColor);
+          width: 100%;
+          color: var(--txt-secondary);
+          background-color: var(--clr-primary);
+          border: 0;
+          border-radius: var(--common-radius);
         }
       }
     }
-    .footerArea {
-      grid-area: footerArea;
-      background-color: var(--backgroundQuarternary);
-      border-radius: var(--commonRadius);
+
+    .footer-area {
       padding: 8px;
+      grid-area: footer-area;
+      background-color: var(--bgc-quarternary);
+      border-radius: var(--common-radius);
+
       p {
         font-size: 12px;
         text-align: center;
+
         a {
           text-decoration: none;
-          color: var(--colorPrimary);
+          color: var(--clr-primary);
         }
       }
     }
   }
 `;
 
-// ================================================================================================================
+
 // Reset Styles
-// ================================================================================================================
+
 export const AlurakutStyles = css`
-  *::-webkit-scrollbar {
-    width: 8px;
-  }
-  *::-webkit-scrollbar-track {
-    background: #f1f1f1; 
-  }
+  *::-webkit-scrollbar { width: 8px; }
+  *::-webkit-scrollbar-track { background: #f1f1f1; }
   *::-webkit-scrollbar-thumb {
     background: #888; 
     border-radius: 10px;
   }
-  *::-webkit-scrollbar-thumb:hover {
-    background: #555; 
-  }
+  *::-webkit-scrollbar-thumb:hover { background: #555; }
+  
   a,
   button {
     cursor: pointer;
-    transition: .3s;
+    transition: 300ms;
     outline: 0;
+    
     &:hover,
-    &:focus {
-      opacity: .8;
-    }
+    &:focus { opacity: .8; }
+    
     &:disabled {
       cursor: not-allowed;
       opacity: .5;
     }
   }
+
   input {
-    transition: .3s;
+    transition: 300ms;
     outline: 0;
+    
     &:disabled {
       cursor: not-allowed;
       opacity: .5;
     }
+
     &:hover,
-    &:focus {
-      box-shadow: 0px 0px 5px #33333357;
-    }
+    &:focus { box-shadow: 0px 0px 5px #33333357; }
+    
     &:required:hover,
     &:required:focus { box-shadow: 0px 0px 5px #ed1c1c; }
   }
