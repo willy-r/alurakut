@@ -7,18 +7,19 @@ import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet}
 import MainGrid from '../src/components/MainGrid';
 import Box from '../src/components/Box';
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
+import { getUserData, verifyUserHasAccess } from './api/user';
 
 
-function ProfileSidebar(props) {
+function ProfileSidebar({ githubUser }) {
   return (
     <Box as="aside">
-      <img src={`https://github.com/${props.githubUser}.png`} alt={`Foto de perfil de ${props.githubUser}`} />
+      <img src={githubUser.avatar_url} alt={`Foto de perfil de ${githubUser.name}`} />
       <hr />
-      <a className="box-link" href={`https://github.com/${props.githubUser}`}>
-        @{props.githubUser}
+      <a className="box-link" href={githubUser.html_url} target="_blank" rel="noopener noreferrer external">
+        {githubUser.name}
       </a>
       <p className="box-text">
-        masculino, solteiro(a), Brasil
+        {githubUser.bio}
       </p>
       <hr />
       <AlurakutProfileSidebarMenuDefault />
@@ -26,16 +27,16 @@ function ProfileSidebar(props) {
   );
 }
 
-function ProfileRelationsBoxContent(props) {
-  const itemsCount = props.itemsList.length;
+function ProfileRelationsBoxContent({ boxTitle, itemsList }) {
+  const itemsCount = itemsList.length;
 
   return (
     <ProfileRelationsBoxWrapper>
       <h2 className="box-smalltitle">
-        {props.boxTitle} <a className="box-link" href="">({itemsCount == 100 ? `${itemsCount}+` : itemsCount})</a>
+        {boxTitle} <a className="box-link" href="">({itemsCount == 100 ? `+${itemsCount}` : itemsCount})</a>
       </h2>
       <ul>
-        {props.itemsList.slice(0, 6).map((item) => {
+        {itemsList.slice(0, 6).map((item) => {
           if (typeof item == 'string') {
             return (
               <li key={item}>
@@ -68,7 +69,7 @@ function ProfileRelationsBoxContent(props) {
   );
 }
 
-function ScrapsBoxContent(props) {
+function ScrapsBoxContent({ scrapsList }) {
   function toggleScraps(event) {
     const buttonForShowingScraps = event.target;
     const scrapsSection = document.querySelector('.scraps-section');
@@ -88,7 +89,7 @@ function ScrapsBoxContent(props) {
     <Box>
       <div class="box-header">
         <h2 className="box-subtitle">
-          Scraps <span className="clr-blue">({props.scrapsList.length})</span>
+          Scraps <span className="clr-blue">({scrapsList.length})</span>
         </h2>
         <button
           className="box-btn __unmargin"
@@ -98,7 +99,7 @@ function ScrapsBoxContent(props) {
         </button>
       </div>
       <section className="scraps-section">
-        {props.scrapsList.map((scrap) => {
+        {scrapsList.map((scrap) => {
           const creationDate = new Date(scrap.createdAt);
           const formattedDate = creationDate.toLocaleDateString('pt-BR', {
             day: '2-digit',
@@ -108,11 +109,14 @@ function ScrapsBoxContent(props) {
 
           return (
             <article className="scrap-card" key={scrap.id}>
-              <div className="box-header">
-                <h3 className="author">{scrap.author}</h3>
-                <em className="date">{formattedDate}</em>
+              <img className="img" src={scrap.authorImage} alt={`Foto de avatar de ${scrap.author}`} />
+              <div className="card-content">
+                <div className="box-header">
+                  <h3 className="author">{scrap.author}</h3>
+                  <em className="date">{formattedDate}</em>
+                </div>
+                <p className="content" style={{ color: scrap.color }}>{scrap.content}</p>
               </div>
-              <p className="content" style={{ color: scrap.color }}>{scrap.content}</p>
             </article>
           );
         })}
@@ -172,12 +176,13 @@ function WelcomeBoxTime({ dateObj }) {
 }
 
 export default function Home(props) {
-  const githubUser = props.githubUser;
+  const userInfo = props.githubUser;
+  const userFirstName = userInfo.name.split(' ')[0];
   
   const [communities, setCommunities] = useState([]);
   useEffect(() => {
     fetch('/api/communities')
-      .then(async (response) => {
+      .then(async response => {
         const allCommunities = await response.json();
         
         setCommunities(allCommunities);
@@ -205,7 +210,7 @@ export default function Home(props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(communityObj),
       })
-        .then(async (response) => {
+        .then(async response => {
           const communityCreated = await response.json();
           
           setCommunities([communityCreated, ...communities]);
@@ -217,7 +222,7 @@ export default function Home(props) {
     const community = {
       title: data.get('community-title'),
       imageUrl: getVerifiedImageURL(data.get('community-img')),
-      creatorSlug: githubUser,
+      creatorSlug: loggedUserInfo.login,
     };
   
     updateWithCommunityCreated(community);
@@ -228,7 +233,7 @@ export default function Home(props) {
   const [scraps, setScraps] = useState([]);
   useEffect(() => {
     fetch('/api/scraps')
-      .then(async (response) => {
+      .then(async response => {
         const allScraps = await response.json();
         
         setScraps(allScraps);
@@ -247,7 +252,7 @@ export default function Home(props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scrapObj),
       })
-        .then(async (response) => {
+        .then(async response => {
           const scrapCreated = await response.json();
           
           setScraps([scrapCreated, ...scraps]);
@@ -268,7 +273,8 @@ export default function Home(props) {
     const form = event.target;
     const data = new FormData(form);
     const scrap = {
-      author: data.get('scrap-author'),
+      author: userInfo.name,
+      authorImage: userInfo.avatar_url,
       content: data.get('scrap-content'),
       color: verifyColor(data.get('scrap-color')),
     };
@@ -281,14 +287,12 @@ export default function Home(props) {
 
   const [followers, setFollowers] = useState([]);
   useEffect(() => {
-    fetch(`https://api.github.com/users/${githubUser}/followers?per_page=100`)
-      .then(async (response) => {
-        if (response.ok) {
-          const followers = await response.json();
-          const followersNames = followers.map((followerObj) => followerObj.login);
-          
-          setFollowers(followersNames);
-        }
+    fetch(`${userInfo.followers_url}?per_page=100`)
+      .then(async response => {
+        const followers = await response.json();
+        const followersNames = followers.map((followerObj) => followerObj.login);
+        
+        setFollowers(followersNames);
       });
   }, []);
 
@@ -312,16 +316,16 @@ export default function Home(props) {
   */
   return (
     <>
-      <AlurakutMenu githubUser={githubUser} />
+      <AlurakutMenu githubUser={userInfo} />
       <MainGrid>
         <div className="profile-area" style={{ gridArea: 'profile-area' }}>
-          <ProfileSidebar githubUser={githubUser} />
+          <ProfileSidebar githubUser={userInfo} />
         </div>
         
         <div className="welcome-area" style={{ gridArea: 'welcome-area' }}>
           <Box>
             <h1 className="box-title __unmargin">
-              Bem vindo(a), {githubUser.toUpperCase()}
+              Bem vindo(a), {userFirstName.toUpperCase()}
             </h1>
             <WelcomeBoxTime dateObj={dateObj} />
             <OrkutNostalgicIconSet />
@@ -360,15 +364,6 @@ export default function Home(props) {
               <input
                 className="box-input"
                 type="text"
-                maxLength="50"
-                name="scrap-author"
-                placeholder="Seu nome"
-                aria-label="Seu nome"
-                required
-              />
-              <input
-                className="box-input"
-                type="text"
                 maxLength="280"
                 name="scrap-content"
                 placeholder="Seu scrap (seja gentil)"
@@ -393,7 +388,7 @@ export default function Home(props) {
                   name="scrap-color"
                   defaultValue={scrapColor}
                   list="suggested-colors"
-                  onInput={(event) => setScrapColor(event.target.value)}
+                  onInput={event => setScrapColor(event.target.value)}
                 />
               </fieldset>
 
@@ -429,12 +424,9 @@ export async function getServerSideProps(context) {
   const cookies = parseCookies(context);
   const token = cookies.USER_TOKEN;
   // Verifica se o usuário está autenticado.
-  const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
-    headers: { Authorization: token },
-  })
-    .then((response) => response.json());
+  const hasAccess = await verifyUserHasAccess(token);
 
-  if (!isAuthenticated) {
+  if (!hasAccess) {
     return {
       redirect: {
         destination: '/login',
@@ -445,8 +437,9 @@ export async function getServerSideProps(context) {
 
   // Se o usuário estiver autenticado, a gente devolve o nome de usuário do GitHub dele.
   const { githubUser } = jwt.decode(token);
+  const userInfo = await getUserData(githubUser);
   
   return {
-    props: { githubUser },
+    props: { githubUser: { ...userInfo } },
   };
 }

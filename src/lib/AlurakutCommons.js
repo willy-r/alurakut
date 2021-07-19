@@ -69,14 +69,15 @@ function AlurakutMenuProfileSidebar({ githubUser }) {
   return (
     <div className="menu-sidebar">
       <div className="menu-wrapper">
-        <img src={`https://github.com/${githubUser}.png`} style={{ borderRadius: '8px' }} />
+        <img
+          src={githubUser.avatar_url}
+          alt={`Foto de perfil de ${githubUser.name}`}
+          style={{ borderRadius: '8px' }}
+        />
         <hr />
-        <a className="profile-link" href={`https://github.com/${githubUser}`}>
-          @{githubUser}
+        <a className="profile-link" href={githubUser.html_url} target="_blank" rel="noopener noreferrer external">
+          {githubUser.name}
         </a>
-        <p className="box-text">
-          masculino, solteiro(a), Brasil
-        </p>
         <hr />
         <AlurakutProfileSidebarMenuDefault />
       </div>
@@ -222,12 +223,6 @@ AlurakutMenu.Wrapper = styled.header`
         font-weight: 800;
       }
 
-      .box-text {
-        margin-top: 8px;
-        font-size: 16px;
-        color: #999;
-      }
-
       hr {
         margin-top: 12px;
         margin-bottom: 8px;
@@ -370,6 +365,7 @@ const AlurakutLoginScreen = css`
     --clr-secondary: #388BB0;
     --clr-tertiary: #2F4A71;
     --clr-quarternary: #D81D99;
+    --clr-error: #cf000f;
 
     --txt-primary: #333333;
     --txt-secondary: #FFFFFF;
@@ -471,10 +467,19 @@ const AlurakutLoginScreen = css`
           width: 100%;
           padding: 12px;
           margin-top: 24px;
-          margin-bottom: 16px;
+          margin-bottom: 3px;
           background-color: var(--bgc-tertiary);
           border: 1px solid var(--txt-quarternary);
           border-radius: var(--common-radius);
+        }
+
+        .error {
+          width: 100%;
+          margin-bottom: var(--gutter);
+          font-size: 12px;
+          font-weight: 600;
+          text-align: left;
+          color: var(--clr-error);
         }
 
         button {

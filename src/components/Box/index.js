@@ -153,11 +153,23 @@ const Box = styled.div`
   
   .scrap-card {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     padding: 8px;
     border: 1px solid #b2b2b2;
     border-radius: 8px;
+
+    .img {
+      width: 70px;
+      max-height: 70px;
+      border-radius: 50%;
+    }
+
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
 
     .author {
       font-size: 16px;
