@@ -3,10 +3,13 @@ import { useRouter } from 'next/router';
 
 import { setCookie } from 'nookies';
 
+import { verifyUserHasAccess } from './api/user';
+
 
 export default function LoginScreen() {
   const router = useRouter();
   const [githubUser, setGithubUser] = useState('');
+  const [userHasAccess, setUserAccess] = useState(true);
 
   function doLogin(event) {
     event.preventDefault();
@@ -16,16 +19,23 @@ export default function LoginScreen() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ githubUser }),
     })
-      .then(async (response) => {
+      .then(async response => {
         const { token } = await response.json();
-        
-        setCookie(null, 'USER_TOKEN', token, {
-          path: '/', // A partir de onde o cookie pode ser acessado, nesse caso na homepage.
-          maxAge: 86400 * 7, // 1 semana.
-        });
+        const hasAccess = await verifyUserHasAccess(token);
 
-        router.push('/');
+        if (hasAccess) {
+          setCookie(null, 'USER_TOKEN', token, {
+            path: '/', // A partir de onde o cookie pode ser acessado, nesse caso na homepage.
+            maxAge: 86400 * 7, // 1 semana.
+          });
+          router.push('/');
+        }
+
+        setUserAccess(hasAccess);
       });
+    
+    event.target.reset();
+    setTimeout(() => setUserAccess(true), 4000);
   }
 
   return (
@@ -53,6 +63,9 @@ export default function LoginScreen() {
               required
               onChange={(event) => setGithubUser(event.target.value)}
             />
+            <span className="error">
+              {!userHasAccess ? 'Usuário não encontrado, tente novamente' : ''}
+            </span>
             <button type="submit">
               Login
             </button>
